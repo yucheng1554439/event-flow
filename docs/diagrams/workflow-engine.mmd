@@ -1,0 +1,19 @@
+stateDiagram-v2
+    [*] --> Pending: POST /workflows
+    Pending --> Running: POST /workflows/:id/run
+    Running --> Running: Execute step
+    Running --> Completed: All steps succeed
+    Running --> Compensating: Step fails
+    Compensating --> Failed: LIFO compensation
+    Completed --> [*]
+    Failed --> [*]
+
+    note right of Running
+        GalacticCommerce example:
+        ProcessPayment → ReserveInventory → SendConfirmation
+    end note
+
+    note right of Compensating
+        On failure: RefundPayment
+        ReleaseInventory (LIFO rollback)
+    end note

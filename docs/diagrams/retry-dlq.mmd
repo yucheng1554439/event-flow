@@ -1,0 +1,14 @@
+flowchart LR
+    E[Event consumed] --> H{Handler success?}
+    H -->|Yes| OK[Commit offset]
+    H -->|No| R[Schedule retry]
+    R --> A{attempt >= max?}
+    A -->|No| B[Exponential backoff]
+    B --> W[Wait next_retry_at]
+    W --> E
+    A -->|Yes| D[Insert DLQ record]
+    D --> K[ship-orders-dlq topic]
+    D --> PG[(PostgreSQL dead_letter_messages)]
+
+    style D fill:#f96,stroke:#333
+    style OK fill:#9f6,stroke:#333

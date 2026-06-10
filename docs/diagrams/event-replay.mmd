@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Ops as Operator
+    participant API as API Gateway
+    participant RP as Replay Service
+    participant PG as PostgreSQL
+    participant K as Kafka
+
+    Ops->>API: POST /api/v1/replay
+    Note over Ops,API: dlqOnly, time range, or partition
+
+    API->>RP: Replay request
+    RP->>PG: List DLQ / events
+    PG-->>RP: Unreplayed messages
+
+    loop Each message
+        RP->>K: Republish to target topic
+        RP->>PG: Mark replayed_at
+    end
+
+    RP-->>API: replayed count
+    API-->>Ops: 200 OK

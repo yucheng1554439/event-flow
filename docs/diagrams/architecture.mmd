@@ -1,0 +1,56 @@
+flowchart TB
+    subgraph Clients["Clients & Operators"]
+        APP[Applications]
+        SRE[SRE / Platform]
+    end
+
+    subgraph Edge["API Layer"]
+        GW["API Gateway<br/>REST :8080 · gRPC :9090"]
+    end
+
+    subgraph Services["EventFlow Services"]
+        CW["Consumer Worker<br/>Kafka consumption"]
+        WE["Workflow Engine<br/>Saga orchestration"]
+        RE["Retry Engine<br/>Backoff + DLQ routing"]
+        RP["Replay Service<br/>Time-range + DLQ replay"]
+    end
+
+    subgraph Kafka["Apache Kafka"]
+        T1[ship-orders]
+        T2[orders]
+        T3[payments]
+        DLQ[topic-dlq]
+    end
+
+    subgraph Storage["Durable State"]
+        PG[(PostgreSQL)]
+        RD[(Redis)]
+    end
+
+    subgraph Obs["Observability"]
+        PR[Prometheus]
+        GF[Grafana]
+    end
+
+    APP --> GW
+    SRE --> GW
+    GW --> Kafka
+    GW --> PG
+    GW --> RD
+    GW --> WE
+    GW --> RP
+
+    Kafka --> CW
+    CW --> RE
+    RE --> PG
+    RE --> DLQ
+    RP --> Kafka
+    RP --> PG
+
+    WE --> PG
+    WE --> RD
+
+    GW --> PR
+    CW --> PR
+    WE --> PR
+    PR --> GF
