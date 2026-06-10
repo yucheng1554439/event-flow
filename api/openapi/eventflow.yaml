@@ -1,0 +1,325 @@
+openapi: 3.1.0
+info:
+  title: EventFlow API
+  description: Distributed event processing platform — topics, events, replay, DLQ, workflows
+  version: 1.1.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+
+paths:
+  /topics:
+    get:
+      summary: List topics
+      operationId: listTopics
+      tags: [Topics]
+      responses:
+        '200':
+          description: Topic list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Topic' }
+    post:
+      summary: Create topic
+      operationId: createTopic
+      tags: [Topics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTopicRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Topic' }
+
+  /topics/{name}:
+    get:
+      summary: Get topic
+      operationId: getTopic
+      tags: [Topics]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Topic' }
+        '404':
+          description: Topic not found
+    delete:
+      summary: Delete topic
+      operationId: deleteTopic
+      tags: [Topics]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Topic deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: string }
+
+  /events:
+    post:
+      summary: Publish event
+      operationId: publishEvent
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PublishEventRequest' }
+            example:
+              topic: orders
+              eventType: OrderCreated
+              idempotencyKey: ord-123-create
+              payload:
+                userId: 123
+                amount: 45.99
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Event' }
+
+  /events/batch:
+    post:
+      summary: Publish batch of events
+      operationId: publishBatch
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PublishBatchRequest' }
+      responses:
+        '202':
+          description: Accepted
+
+  /replay:
+    post:
+      summary: Replay events by topic, time range, or partition
+      operationId: replayEvents
+      tags: [Replay]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReplayRequest' }
+            example:
+              topic: orders
+              startTime: "2026-01-01T00:00:00Z"
+              endTime: "2026-01-30T23:59:59Z"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  replayed: { type: integer }
+
+  /dlq/{topic}:
+    get:
+      summary: Inspect dead letter messages
+      operationId: listDLQ
+      tags: [DLQ]
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DLQMessage' }
+
+  /dlq/{topic}/replay:
+    post:
+      summary: Replay DLQ messages back to source topic
+      operationId: replayDLQ
+      tags: [DLQ]
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  replayed: { type: integer }
+
+  /workflows:
+    post:
+      summary: Create workflow
+      operationId: createWorkflow
+      tags: [Workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWorkflowRequest' }
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Workflow' }
+
+  /workflows/{id}:
+    get:
+      summary: Inspect workflow
+      operationId: getWorkflow
+      tags: [Workflows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkflowDetail' }
+
+  /workflows/{id}/run:
+    post:
+      summary: Execute workflow
+      operationId: runWorkflow
+      tags: [Workflows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Workflow execution started
+
+components:
+  schemas:
+    Topic:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        partitions: { type: integer }
+        replication: { type: integer }
+        replicationFactor: { type: integer }
+        retentionHours: { type: integer }
+        cleanupPolicy: { type: string, enum: [delete, compact] }
+        compression: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CreateTopicRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        partitions: { type: integer, default: 6 }
+        replication: { type: integer, default: 3 }
+        replicationFactor: { type: integer, default: 3 }
+        retentionHours: { type: integer, default: 168 }
+        cleanupPolicy: { type: string, enum: [delete, compact], default: delete }
+
+    PublishEventRequest:
+      type: object
+      required: [topic, eventType, payload]
+      properties:
+        topic: { type: string }
+        eventType: { type: string }
+        idempotencyKey: { type: string }
+        payload: { type: object }
+        headers: { type: object, additionalProperties: { type: string } }
+
+    PublishBatchRequest:
+      type: object
+      properties:
+        events:
+          type: array
+          items: { $ref: '#/components/schemas/PublishEventRequest' }
+
+    Event:
+      type: object
+      properties:
+        id: { type: string }
+        topic: { type: string }
+        partition: { type: integer }
+        offset: { type: integer }
+        eventType: { type: string }
+        publishedAt: { type: string, format: date-time }
+
+    ReplayRequest:
+      type: object
+      required: [topic]
+      properties:
+        topic: { type: string }
+        partition: { type: integer }
+        startTime: { type: string, format: date-time }
+        endTime: { type: string, format: date-time }
+        dlqOnly: { type: boolean, default: false }
+        targetTopic: { type: string }
+
+    DLQMessage:
+      type: object
+      properties:
+        id: { type: string }
+        originalTopic: { type: string }
+        eventId: { type: string }
+        eventType: { type: string }
+        failureReason: { type: string }
+        retryAttempts: { type: integer }
+        failedAt: { type: string, format: date-time }
+
+    CreateWorkflowRequest:
+      type: object
+      required: [name, input]
+      properties:
+        name: { type: string }
+        input: { type: object }
+
+    Workflow:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [pending, running, completed, failed, compensating, cancelled] }
+        currentStep: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    WorkflowDetail:
+      type: object
+      properties:
+        workflow: { $ref: '#/components/schemas/Workflow' }
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              status: { type: string }
+              error: { type: string }

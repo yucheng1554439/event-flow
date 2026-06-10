@@ -1,0 +1,14 @@
+FROM golang:1.22-alpine AS builder
+RUN apk add --no-cache gcc musl-dev librdkafka-dev
+WORKDIR /app
+COPY go.mod ./
+RUN go mod download
+COPY . .
+# Link against Alpine's musl librdkafka — default build uses vendored glibc .a and fails on musl.
+RUN CGO_ENABLED=1 go build -tags dynamic -o /consumer-worker ./cmd/consumer-worker
+
+FROM alpine:3.19
+RUN apk add --no-cache ca-certificates librdkafka
+COPY --from=builder /consumer-worker /usr/local/bin/consumer-worker
+EXPOSE 8082
+ENTRYPOINT ["consumer-worker"]

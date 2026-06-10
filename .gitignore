@@ -1,0 +1,15 @@
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+vendor/
+.idea/
+.vscode/
+*.swp
+.env
+.env.*
+.terraform/
+*.tfstate
+*.tfstate.*
+coverage.out

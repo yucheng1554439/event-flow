@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-worker
+  namespace: eventflow
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: consumer-worker
+  template:
+    metadata:
+      labels:
+        app: consumer-worker
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+    spec:
+      containers:
+        - name: consumer-worker
+          image: eventflow/consumer-worker:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: eventflow-config
+          env:
+            - name: CONSUMER_GROUP
+              value: eventflow-workers
+            - name: CONSUMER_TOPIC
+              value: orders
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eventflow-secrets
+                  key: postgres-password
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { cpu: "2", memory: 1Gi }

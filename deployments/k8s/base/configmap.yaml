@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eventflow-config
+  namespace: eventflow
+data:
+  KAFKA_BROKERS: "kafka.eventflow.svc.cluster.local:9092"
+  REDIS_URL: "redis://redis.eventflow.svc.cluster.local:6379/0"
+  DATABASE_URL: "postgres://eventflow:$(POSTGRES_PASSWORD)@postgres.eventflow.svc.cluster.local:5432/eventflow?sslmode=disable"
+  HTTP_PORT: "8080"
+  GRPC_PORT: "9090"

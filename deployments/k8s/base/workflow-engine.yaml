@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-engine
+  namespace: eventflow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: workflow-engine
+  template:
+    metadata:
+      labels:
+        app: workflow-engine
+    spec:
+      containers:
+        - name: workflow-engine
+          image: eventflow/workflow-engine:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: eventflow-config
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eventflow-secrets
+                  key: postgres-password
