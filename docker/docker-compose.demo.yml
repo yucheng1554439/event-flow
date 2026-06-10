@@ -1,0 +1,28 @@
+# Galactic Commerce demo overlay — use with:
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.demo.yml up -d --build
+
+services:
+  postgres:
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql
+      - ../migrations/002_add_cleanup_policy.sql:/docker-entrypoint-initdb.d/002_schema.sql
+
+  api-gateway:
+    environment:
+      DEMO_MODE: "true"
+
+  consumer-worker:
+    deploy:
+      replicas: 1
+    environment:
+      DEMO_MODE: "true"
+      CONSUMER_GROUP: galactic-commerce-workers
+      CONSUMER_TOPIC: ship-orders
+      WORKFLOW_API_URL: http://api-gateway:8080
+      RETRY_MAX_ATTEMPTS: "3"
+      RETRY_INITIAL_MS: "2000"
+
+  workflow-engine:
+    environment:
+      DEMO_MODE: "true"

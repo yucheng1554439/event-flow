@@ -1,0 +1,113 @@
+{
+  "title": "EventFlow Demo Dashboard",
+  "uid": "eventflow-demo",
+  "tags": ["eventflow", "demo", "galactic-commerce"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Events / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(events_processed_total{topic=\"ship-orders\"}[1m]))",
+          "legendFormat": "processed"
+        },
+        {
+          "expr": "sum(rate(events_published_total{topic=\"ship-orders\"}[1m]))",
+          "legendFormat": "published"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 2,
+      "title": "Consumer Lag",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "targets": [
+        {
+          "expr": "max(consumer_lag{topic=\"ship-orders\"})",
+          "legendFormat": "lag"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Retry Count",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(retry_attempts_total[1m])) by (topic, status)",
+          "legendFormat": "{{topic}}/{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "DLQ Count",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(increase(dlq_messages_total{topic=\"ship-orders\"}[15m]))",
+          "legendFormat": "DLQ messages"
+        }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] } } }
+    },
+    {
+      "id": 5,
+      "title": "Workflow Success Rate",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(workflow_completed_total{workflow_name=\"GalacticCommerce\"}[5m])) / (sum(rate(workflow_completed_total{workflow_name=\"GalacticCommerce\"}[5m])) + sum(rate(workflow_failed_total{workflow_name=\"GalacticCommerce\"}[5m])) + 0.001) * 100",
+          "legendFormat": "success %"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 } }
+    },
+    {
+      "id": 6,
+      "title": "Workflow Failure Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(workflow_failed_total{workflow_name=\"GalacticCommerce\"}[1m])) by (step)",
+          "legendFormat": "{{step}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Galactic Commerce — Event Flow",
+      "type": "text",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 16 },
+      "options": {
+        "content": "## ShipPurchased → Kafka → Consumer Group → GalacticCommerce Workflow\n**Happy path:** ProcessPayment → ReserveInventory → SendConfirmation\n**Failure path:** Retries → DLQ → Replay | Saga compensation: RefundPayment",
+        "mode": "markdown"
+      }
+    }
+  ]
+}
