@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Go vet
+        run: go vet ./...
+      - name: Verify proto generated
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protoc-25.1-linux-x86_64.zip -o protoc.zip
+          unzip -q protoc.zip -d $HOME/.local
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.33.0
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+          make proto
+          git diff --exit-code api/gen/go || (echo "proto out of date; run make proto" && exit 1)
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go test ./internal/... ./pkg/... -count=1 -race -timeout 5m
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Install librdkafka
+        run: sudo apt-get update && sudo apt-get install -y librdkafka-dev
+      - name: Integration tests
+        env:
+          CGO_ENABLED: "1"
+        run: go test -tags=integration ./tests/integration/... -count=1 -timeout 15m
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          docker build -f docker/Dockerfile.api-gateway -t eventflow/api-gateway:ci .
+          docker build -f docker/Dockerfile.consumer-worker -t eventflow/consumer-worker:ci .
+          docker build -f docker/Dockerfile.workflow-engine -t eventflow/workflow-engine:ci .
+
+  helm-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint ./helm/eventflow
+      - run: helm template eventflow ./helm/eventflow > /dev/null
+
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive terraform/
+      - run: terraform init -backend=false
+        working-directory: terraform/environments/dev
+      - run: terraform validate
+        working-directory: terraform/environments/dev
