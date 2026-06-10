@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package eventflow.v1;
+
+option go_package = "github.com/eventflow/eventflow/api/gen/go/eventflow/v1;eventflowv1";
+
+import "eventflow/v1/common.proto";
+import "google/protobuf/struct.proto";
+
+service WorkflowService {
+  rpc StartWorkflow(StartWorkflowRequest) returns (Workflow);
+  rpc RunWorkflow(RunWorkflowRequest) returns (RunWorkflowResponse);
+  rpc GetWorkflow(GetWorkflowRequest) returns (GetWorkflowResponse);
+}
+
+message StartWorkflowRequest {
+  string name = 1;
+  google.protobuf.Struct input = 2;
+}
+
+message RunWorkflowRequest { string workflow_id = 1; }
+message RunWorkflowResponse { string workflow_id = 1; string status = 2; }
+
+message GetWorkflowRequest { string workflow_id = 1; }
+message GetWorkflowResponse {
+  Workflow workflow = 1;
+  repeated WorkflowStep steps = 2;
+}

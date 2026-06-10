@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package eventflow.v1;
+
+option go_package = "github.com/eventflow/eventflow/api/gen/go/eventflow/v1;eventflowv1";
+
+import "google/protobuf/timestamp.proto";
+
+service ReplayService {
+  rpc ReplayEvents(ReplayEventsRequest) returns (ReplayEventsResponse);
+}
+
+message ReplayEventsRequest {
+  string topic = 1;
+  optional int32 partition = 2;
+  optional google.protobuf.Timestamp start_time = 3;
+  optional google.protobuf.Timestamp end_time = 4;
+  bool dlq_only = 5;
+  string target_topic = 6;
+}
+
+message ReplayEventsResponse { int32 replayed = 1; }

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "eventflow.name" . }}-config
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+data:
+  KAFKA_BROKERS: {{ .Values.kafkaBootstrapServers | quote }}
+  DATABASE_URL: {{ include "eventflow.databaseUrl" . | quote }}
+  REDIS_URL: {{ include "eventflow.redisUrl" . | quote }}
+  HTTP_PORT: {{ .Values.service.apiGateway.httpPort | quote }}
+  GRPC_PORT: {{ .Values.service.apiGateway.grpcPort | quote }}
+  CONSUMER_GROUP: {{ .Values.consumer.group | quote }}
+  CONSUMER_TOPIC: {{ .Values.consumer.topic | quote }}

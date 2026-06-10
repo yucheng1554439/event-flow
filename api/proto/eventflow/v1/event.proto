@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package eventflow.v1;
+
+option go_package = "github.com/eventflow/eventflow/api/gen/go/eventflow/v1;eventflowv1";
+
+import "eventflow/v1/common.proto";
+import "google/protobuf/struct.proto";
+
+service EventService {
+  rpc PublishEvent(PublishEventRequest) returns (Event);
+  rpc PublishBatch(PublishBatchRequest) returns (PublishBatchResponse);
+}
+
+message PublishEventRequest {
+  string topic = 1;
+  string event_type = 2;
+  string idempotency_key = 3;
+  google.protobuf.Struct payload = 4;
+  map<string, string> headers = 5;
+}
+
+message PublishBatchRequest { repeated PublishEventRequest events = 1; }
+message PublishBatchResponse { repeated Event events = 1; int32 count = 2; }

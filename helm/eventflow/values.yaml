@@ -1,0 +1,61 @@
+replicaCount:
+  apiGateway: 3
+  consumerWorker: 6
+  workflowEngine: 2
+
+imageTag: latest
+imagePullPolicy: IfNotPresent
+
+image:
+  apiGateway: eventflow/api-gateway
+  consumerWorker: eventflow/consumer-worker
+  workflowEngine: eventflow/workflow-engine
+
+kafkaBootstrapServers: kafka:9092
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  user: eventflow
+  password: eventflow
+  database: eventflow
+  storage: 10Gi
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+
+resourceLimits:
+  apiGateway:
+    cpu: "1"
+    memory: 512Mi
+  consumerWorker:
+    cpu: "2"
+    memory: 1Gi
+  workflowEngine:
+    cpu: "1"
+    memory: 512Mi
+
+resourceRequests:
+  apiGateway:
+    cpu: 250m
+    memory: 256Mi
+  consumerWorker:
+    cpu: 500m
+    memory: 512Mi
+  workflowEngine:
+    cpu: 250m
+    memory: 256Mi
+
+service:
+  apiGateway:
+    httpPort: 8080
+    grpcPort: 9090
+
+consumer:
+  group: eventflow-workers
+  topic: orders
+
+monitoring:
+  enabled: true
+  scrapeAnnotations: true

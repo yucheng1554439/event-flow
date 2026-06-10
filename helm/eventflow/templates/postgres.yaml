@@ -1,0 +1,56 @@
+{{- if .Values.postgres.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "eventflow.name" . }}-postgres
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "eventflow.name" . }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      {{- include "eventflow.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: postgres
+        {{- include "eventflow.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgres.password | quote }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.postgres.storage }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eventflow.name" . }}-postgres
+spec:
+  selector:
+    app: postgres
+    {{- include "eventflow.labels" . | nindent 4 }}
+  ports:
+    - port: 5432
+      targetPort: 5432
+{{- end }}

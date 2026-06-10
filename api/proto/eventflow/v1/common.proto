@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package eventflow.v1;
+
+option go_package = "github.com/eventflow/eventflow/api/gen/go/eventflow/v1;eventflowv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+message Topic {
+  string id = 1;
+  string name = 2;
+  int32 partitions = 3;
+  int32 replication_factor = 4;
+  int32 retention_hours = 5;
+  string cleanup_policy = 6;
+  string compression = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message Event {
+  string id = 1;
+  string topic = 2;
+  int32 partition = 3;
+  int64 offset = 4;
+  string event_type = 5;
+  string idempotency_key = 6;
+  google.protobuf.Struct payload = 7;
+  google.protobuf.Timestamp published_at = 8;
+}
+
+message Workflow {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  google.protobuf.Struct input = 4;
+  string current_step = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message WorkflowStep {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  string error = 4;
+}

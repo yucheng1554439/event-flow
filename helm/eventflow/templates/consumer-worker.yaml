@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eventflow.name" . }}-consumer-worker
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.consumerWorker }}
+  selector:
+    matchLabels:
+      app: consumer-worker
+      {{- include "eventflow.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: consumer-worker
+        {{- include "eventflow.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: consumer-worker
+          image: "{{ .Values.image.consumerWorker }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: {{ include "eventflow.name" . }}-config
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+            initialDelaySeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+          resources:
+            limits:
+              cpu: {{ .Values.resourceLimits.consumerWorker.cpu | quote }}
+              memory: {{ .Values.resourceLimits.consumerWorker.memory | quote }}
+            requests:
+              cpu: {{ .Values.resourceRequests.consumerWorker.cpu | quote }}
+              memory: {{ .Values.resourceRequests.consumerWorker.memory | quote }}

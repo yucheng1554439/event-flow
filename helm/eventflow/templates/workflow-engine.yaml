@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eventflow.name" . }}-workflow-engine
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.workflowEngine }}
+  selector:
+    matchLabels:
+      app: workflow-engine
+      {{- include "eventflow.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: workflow-engine
+        {{- include "eventflow.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: workflow-engine
+          image: "{{ .Values.image.workflowEngine }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: {{ include "eventflow.name" . }}-config
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+          resources:
+            limits:
+              cpu: {{ .Values.resourceLimits.workflowEngine.cpu | quote }}
+              memory: {{ .Values.resourceLimits.workflowEngine.memory | quote }}
+            requests:
+              cpu: {{ .Values.resourceRequests.workflowEngine.cpu | quote }}
+              memory: {{ .Values.resourceRequests.workflowEngine.memory | quote }}

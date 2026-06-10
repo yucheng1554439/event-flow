@@ -1,0 +1,1 @@
+ALTER TABLE topics ADD COLUMN IF NOT EXISTS cleanup_policy VARCHAR(32) NOT NULL DEFAULT 'delete';

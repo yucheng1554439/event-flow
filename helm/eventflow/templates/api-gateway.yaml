@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "eventflow.name" . }}-api-gateway
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+    app: api-gateway
+spec:
+  replicas: {{ .Values.replicaCount.apiGateway }}
+  selector:
+    matchLabels:
+      app: api-gateway
+      {{- include "eventflow.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        {{- include "eventflow.labels" . | nindent 8 }}
+      {{- if .Values.monitoring.scrapeAnnotations }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.service.apiGateway.httpPort | quote }}
+        prometheus.io/path: "/metrics"
+      {{- end }}
+    spec:
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.image.apiGateway }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.apiGateway.httpPort }}
+            - name: grpc
+              containerPort: {{ .Values.service.apiGateway.grpcPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "eventflow.name" . }}-config
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+          resources:
+            limits:
+              cpu: {{ .Values.resourceLimits.apiGateway.cpu | quote }}
+              memory: {{ .Values.resourceLimits.apiGateway.memory | quote }}
+            requests:
+              cpu: {{ .Values.resourceRequests.apiGateway.cpu | quote }}
+              memory: {{ .Values.resourceRequests.apiGateway.memory | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "eventflow.name" . }}-api-gateway
+  labels:
+    {{- include "eventflow.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: api-gateway
+    {{- include "eventflow.labels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: grpc
+      port: {{ .Values.service.apiGateway.grpcPort }}
+      targetPort: grpc
