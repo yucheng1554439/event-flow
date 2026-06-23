@@ -1,4 +1,4 @@
-# Rebuild git history as phased commits without Cursor co-author trailers.
+# Rebuild git history as phased commits without co-author trailers.
 # Usage: .\scripts\rebuild-phased-history.ps1 [-Force]
 
 param([switch]$Force)

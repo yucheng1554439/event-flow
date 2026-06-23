@@ -173,7 +173,7 @@
 ## Performance Bottlenecks
 
 1. **Sequential batch publish** — `PublishBatch` publishes one-by-one; consider async produce with flush.
-2. **Replay scans PostgreSQL** — Large time ranges load all events into memory; add cursor pagination.
+2. **Replay scans PostgreSQL** — Large time ranges load all events into memory; add paginated scans.
 3. **Consumer worker** — Single-threaded poll loop per instance; adequate for Phase 2, scale horizontally.
 4. **Redis lock TTL** — 5-minute workflow lock may delay recovery; tune per workflow SLA.
 
