@@ -5,6 +5,11 @@ on:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master, develop]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: "1.22"
+  TERRAFORM_VERSION: "1.6.6"
 
 jobs:
   lint:
@@ -13,8 +18,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Install librdkafka
+        run: sudo apt-get update && sudo apt-get install -y librdkafka-dev
       - name: Go vet
+        env:
+          CGO_ENABLED: "1"
         run: go vet ./...
       - name: Verify proto generated
         run: |
@@ -32,8 +42,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
-      - run: go test ./internal/... ./pkg/... -count=1 -race -timeout 5m
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: Install librdkafka
+        run: sudo apt-get update && sudo apt-get install -y librdkafka-dev
+      - name: Unit tests
+        env:
+          CGO_ENABLED: "1"
+        run: go test ./internal/... ./pkg/... -count=1 -race -timeout 5m
 
   integration-test:
     runs-on: ubuntu-latest
@@ -41,13 +57,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
       - name: Install librdkafka
         run: sudo apt-get update && sudo apt-get install -y librdkafka-dev
       - name: Integration tests
         env:
           CGO_ENABLED: "1"
-        run: go test -tags=integration ./tests/integration/... -count=1 -timeout 15m
+          TESTCONTAINERS_RYUK_DISABLED: "false"
+        run: go test -tags=integration ./tests/integration/... -count=1 -timeout 15m -v
 
   docker-build:
     runs-on: ubuntu-latest
@@ -65,16 +83,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
-      - run: helm lint ./helm/eventflow
-      - run: helm template eventflow ./helm/eventflow > /dev/null
+      - name: Helm lint
+        run: helm lint ./helm/eventflow
+      - name: Helm template
+        run: helm template eventflow ./helm/eventflow > /dev/null
 
   terraform-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
-      - run: terraform fmt -check -recursive terraform/
-      - run: terraform init -backend=false
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive terraform/
+      - name: Terraform init
+        run: terraform init -backend=false -input=false
         working-directory: terraform/environments/dev
-      - run: terraform validate
+      - name: Terraform validate
+        run: terraform validate -no-color
         working-directory: terraform/environments/dev

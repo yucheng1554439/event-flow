@@ -1,4 +1,4 @@
-.PHONY: build test lint proto migrate docker-up docker-down k8s-apply tf-init tf-plan
+.PHONY: build test lint proto migrate docker-up docker-down k8s-apply tf-init tf-plan tf-validate helm-validate docker-build-ci test-integration ci
 
 SERVICES := api-gateway workflow-engine consumer-worker
 
@@ -24,7 +24,22 @@ proto:
 		api/proto/eventflow/v1/workflow.proto
 
 test-integration:
-	go test -tags=integration ./tests/integration/... -count=1 -timeout 15m
+	CGO_ENABLED=1 go test -tags=integration ./tests/integration/... -count=1 -timeout 15m
+
+tf-validate:
+	terraform fmt -check -recursive terraform/
+	cd terraform/environments/dev && terraform init -backend=false -input=false && terraform validate -no-color
+
+helm-validate:
+	helm lint ./helm/eventflow
+	helm template eventflow ./helm/eventflow > /dev/null
+
+docker-build-ci:
+	docker build -f docker/Dockerfile.api-gateway -t eventflow/api-gateway:ci .
+	docker build -f docker/Dockerfile.consumer-worker -t eventflow/consumer-worker:ci .
+	docker build -f docker/Dockerfile.workflow-engine -t eventflow/workflow-engine:ci .
+
+ci: lint test test-integration docker-build-ci helm-validate tf-validate
 
 helm-install:
 	helm install eventflow ./helm/eventflow
