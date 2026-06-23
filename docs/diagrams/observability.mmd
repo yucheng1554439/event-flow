@@ -1,0 +1,40 @@
+flowchart TB
+    subgraph Services["EventFlow Services"]
+        GW[API Gateway :8080]
+        CW[Consumer Worker :8082]
+        WE[Workflow Engine :8081]
+    end
+
+    subgraph Metrics["Prometheus :9091"]
+        EP1[/metrics gateway/]
+        EP2[/metrics consumer/]
+        EP3[/metrics workflow/]
+    end
+
+    subgraph Dashboards["Grafana :3000"]
+        D1[EventFlow Operations]
+        D2[EventFlow Demo Dashboard]
+    end
+
+  subgraph Signals["Key metric families"]
+        M1[eventflow_events_published_total]
+        M2[eventflow_consumer_lag]
+        M3[eventflow_dlq_messages_total]
+        M4[eventflow_retry_attempts_total]
+        M5[eventflow_workflow_duration_seconds]
+    end
+
+    GW --> EP1
+    CW --> EP2
+    WE --> EP3
+    EP1 --> D1
+    EP2 --> D1
+    EP3 --> D1
+    EP1 --> D2
+    EP2 --> D2
+  EP3 --> D2
+    D1 --> M1
+    D1 --> M2
+    D2 --> M3
+    D2 --> M4
+    D2 --> M5

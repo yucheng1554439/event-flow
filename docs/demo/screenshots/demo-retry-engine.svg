@@ -1,0 +1,20 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" rx="12" fill="#0f172a"/>
+  <rect width="720" height="36" rx="12" fill="#1e293b"/>
+  <rect y="24" width="720" height="12" fill="#1e293b"/>
+  <circle cx="20" cy="18" r="6" fill="#ef4444"/>
+  <circle cx="40" cy="18" r="6" fill="#f59e0b"/>
+  <circle cx="60" cy="18" r="6" fill="#22c55e"/>
+  <text x="88" y="23" fill="#94a3b8" font-family="Segoe UI, sans-serif" font-size="12">EventFlow - Retry inspection API</text>
+  <rect x="12" y="44" width="696" height="304" rx="8" fill="#020617" stroke="#334155"/>
+  <text x="24" y="88" fill="#7dd3fc" font-family="Cascadia Mono, Consolas, monospace" font-size="13">$ curl -s "http://localhost:8080/api/v1/retries?topic=ship-orders" | jq</text>
+<text x="24" y="110" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">[{</text>
+<text x="24" y="132" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "eventId": "a91c2e10-4f8b-4c2d-9e11-2b7f8c0d1e22",</text>
+<text x="24" y="154" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "attempt": 3,</text>
+<text x="24" y="176" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "maxAttempts": 3,</text>
+<text x="24" y="198" fill="#a5b4fc" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "status": "dlq",</text>
+<text x="24" y="220" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "nextRetryAt": null,</text>
+<text x="24" y="242" fill="#fca5a5" font-family="Cascadia Mono, Consolas, monospace" font-size="13">  "lastError": "simulated transient failure"</text>
+<text x="24" y="264" fill="#e2e8f0" font-family="Cascadia Mono, Consolas, monospace" font-size="13">}]</text>
+
+</svg>

@@ -39,7 +39,7 @@ The **API Gateway** is the single ingress for REST and gRPC. It publishes to Kaf
 
 The **Workflow Engine** runs saga-style multi-step processes with persistent state and Redis-backed distributed locks.
 
-See the full diagram: [diagrams/architecture.png](diagrams/architecture.png).
+See the full diagram: [diagrams/architecture.png](diagrams/architecture.png). Observability pipeline: [diagrams/observability.png](diagrams/observability.png).
 
 ---
 

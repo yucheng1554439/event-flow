@@ -112,6 +112,7 @@ A candidate who built EventFlow can speak confidently about:
 ## Related Documents
 
 - [System Design Case Study](case-study.md)
+- [Interview Guide](interview-guide.md)
 - [Resume Snippets](resume-snippets.md)
 - [Project Metrics](project-metrics.md)
 - [Demo Script](demo/demo-script.md)

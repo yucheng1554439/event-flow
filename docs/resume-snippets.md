@@ -1,51 +1,47 @@
 # EventFlow Resume Snippets
 
-ATS-friendly bullet points. Copy 2–4 bullets per role application. Quantities reference [project-metrics.md](project-metrics.md).
+ATS-friendly bullet points. Copy 2–4 bullets per application. Quantities reference [project-metrics.md](project-metrics.md).
 
 ---
 
-## Backend Intern Version
+## Backend Version
 
-- Built **EventFlow**, an event-driven backend platform in **Go** with REST APIs for publishing, consuming, and replaying Kafka messages
-- Implemented **PostgreSQL** persistence for events, consumer offsets, and dead-letter queue records across 8 database tables
-- Created **Docker Compose** local stack with Kafka, Redis, and 3 microservices for end-to-end development and testing
-- Wrote integration tests using **Testcontainers** to validate publish/consume flows against real Kafka and PostgreSQL instances
-- Added **Prometheus** metrics and **Grafana** dashboards for event throughput and consumer lag monitoring
-
----
-
-## New Grad Version
-
-- Designed and implemented **EventFlow**, a distributed event processing platform in **Go** featuring Kafka messaging, saga workflows, exponential backoff retries, and DLQ replay
-- Built **16 REST endpoints** and **gRPC services** for topic administration, event publishing, workflow orchestration, and dead-letter queue management
-- Engineered **at-least-once delivery** with consumer group offset tracking, idempotency keys, and Redis-backed deduplication
-- Implemented **saga compensation** workflow engine with LIFO rollback (ProcessPayment → ReserveInventory → SendConfirmation)
-- Deployed via **Docker**, **Kubernetes** manifests, and **Helm** chart; provisioned AWS infrastructure with **Terraform** (EKS, MSK, RDS, ElastiCache)
-- Authored live demo script processing ShipPurchased events through retry, DLQ, replay, and successful workflow completion in under 90 seconds
+- Built **EventFlow**, a distributed event processing platform in **Go** with **16 REST endpoints** and **gRPC** services for publishing, consuming, and replaying Kafka messages
+- Implemented **at-least-once delivery** with consumer group offset tracking, idempotency keys, and **Redis**-backed deduplication
+- Designed **saga compensation** workflow engine with LIFO rollback (`ProcessPayment` → `ReserveInventory` → `SendConfirmation`)
+- Persisted events, workflows, retries, and DLQ records across **8 PostgreSQL tables** with queryable operator APIs
+- Wrote **Testcontainers** integration tests validating publish/consume, retry, DLQ, and replay paths against real dependencies
+- Delivered live **GalacticCommerce** demo: publish → saga → failure → retry → DLQ → replay → success in under 90 seconds
 
 ---
 
-## Platform Engineer Version
+## Platform Version
 
-- Architected **EventFlow**, a production-style event platform combining **Apache Kafka**, **PostgreSQL**, **Redis**, and **Go** microservices for durable async processing at scale
-- Designed Kafka topic strategy with 6–24 partitions per domain, paired DLQ topics, and consumer group horizontal scaling patterns
-- Built retry engine with **exponential backoff**, max-attempt DLQ routing, and operator APIs for retry inspection and DLQ statistics
+- Architected **EventFlow**, a production-style event platform combining **Apache Kafka**, **PostgreSQL**, **Redis**, and **Go** microservices for durable async processing
+- Built retry engine with **exponential backoff**, max-attempt DLQ routing, and REST/gRPC APIs for retry inspection and DLQ statistics
 - Implemented event **replay service** supporting DLQ-only, time-range, and partition-scoped reprocessing with idempotent replay tracking
-- Delivered **observability stack**: 15+ Prometheus metric families, Grafana dashboards, and health endpoints across all services
-- Established **CI/CD pipeline** (GitHub Actions) with unit tests, Testcontainers integration suite, Docker builds, Helm lint, and Terraform validation
-- Created **Terraform modules** for AWS VPC, EKS, MSK, RDS PostgreSQL, and ElastiCache Redis
+- Designed Kafka topic strategy with **6–24 partitions** per domain, paired `{topic}-dlq` topics, and consumer group horizontal scaling
+- Exposed **dynamic topic administration** (create/list/delete) via REST and gRPC with Kafka AdminClient integration
+- Established **CI/CD pipeline** (GitHub Actions): unit tests, integration suite, Docker builds, Helm lint, Terraform validation
+- Delivered **15+ Prometheus metric families** and **2 Grafana dashboards** for throughput, lag, DLQ depth, and saga latency
 
 ---
 
-## Infrastructure Engineer Version
+## Infrastructure Version
 
-- Built cloud-native **EventFlow** platform with **Terraform** IaC modules for AWS EKS, MSK (Kafka), RDS, ElastiCache, and VPC networking
-- Packaged all services into **Helm chart** with configurable values for api-gateway, consumer-worker, workflow-engine, Postgres, and Redis
-- Designed **9-container** Docker Compose stack mirroring production topology: Kafka, Zookeeper, Postgres, Redis, Prometheus, Grafana
-- Implemented **Kubernetes** base manifests with Kustomize dev overlay for environment-specific deployment
-- Configured **Prometheus** scrape targets and **Grafana** provisioning for EventFlow operational and demo dashboards
-- Authored deployment runbooks and live infrastructure demo showcasing DLQ replay, consumer scaling, and workflow failure compensation
-- Maintained **~5,500 lines** of application and infrastructure code with integration tests against containerized dependencies
+- Provisioned AWS infrastructure with **Terraform** modules: VPC, **EKS**, **MSK** (Kafka), **RDS** PostgreSQL, and **ElastiCache** Redis
+- Packaged EventFlow into a **Helm chart** (api-gateway, consumer-worker, workflow-engine, Postgres, Redis) with configurable values
+- Designed **9-container** Docker Compose stack mirroring production: Kafka, Zookeeper, Postgres, Redis, Prometheus, Grafana
+- Authored **Kubernetes** base manifests with Kustomize dev overlay for environment-specific deployment
+- Configured **Prometheus** scrape targets and **Grafana** provisioning for operations and demo dashboards
+- Maintained **~5,500 lines** of application and infrastructure code with reproducible CI and lock files
+- Created deployment runbooks and infrastructure demo showcasing DLQ replay, consumer scaling, and workflow failure compensation
+
+---
+
+## Compact Variants (Intern / New Grad)
+
+Use 3–4 bullets from **Backend Version** plus one deployment bullet from **Infrastructure Version** if space allows.
 
 ---
 
@@ -57,6 +53,6 @@ ATS-friendly bullet points. Copy 2–4 bullets per role application. Quantities 
 
 ## One-Line Summary Variants
 
-- **Short:** EventFlow — Kafka-based event platform with workflows, retries, DLQ, and replay (Go, PostgreSQL, Redis, K8s, Terraform)
+- **Short:** EventFlow — Kafka event platform with workflows, retries, DLQ, and replay (Go, PostgreSQL, Redis, K8s, Terraform)
 - **Impact:** Built a production-grade distributed event processing platform demonstrating saga workflows, at-least-once delivery, and cloud-native deployment
-- **Technical:** Go microservices platform: Kafka ingestion, exponential retry/DLQ, compensating sagas, gRPC/REST APIs, Prometheus/Grafana observability
+- **Technical:** Go microservices: Kafka ingestion, exponential retry/DLQ, compensating sagas, gRPC/REST APIs, Prometheus/Grafana observability

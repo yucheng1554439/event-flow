@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `CONTRIBUTING.md` — development workflow, PR checklist, and release tag reference
+- Production-grade README with demo GIF above the fold, scaling/reliability section, and observability diagram
+- Architecture, workflow, retry/DLQ, replay, and observability PNG diagrams
+- Demo screenshot assets and `scripts/generate-screenshots.ps1`
+- `docs/interview-guide.md` for technical interview preparation
+- Reorganized `docs/resume-snippets.md` (Backend, Platform, Infrastructure versions)
+- SVG banner and PNG exports for GitHub README
 
 ---
 
